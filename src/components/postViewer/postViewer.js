@@ -3,18 +3,22 @@ import gql from 'graphql-tag'
 import { Query } from 'react-apollo'
 import { Table } from 'reactstrap'
 
-export const GET_POST = gql`
- query GetPosts {
-   posts {
-     id
-     author
-     body
-   }
- }
+export const GET_POSTS = gql`
+  query GetPosts {
+    posts {
+      id
+      author
+      body
+    }
+  }
 `
 
-export default () => (
-  <Query query={GET_POST}>
+const rowStyles = (post, canEdit) => canEdit(post)
+? { cursor: 'pointer', fontWeight: 'bold' }
+: {};
+
+const PostViewer = ({ canEdit, onEdit }) => (
+  <Query query={GET_POSTS}>
   {({ loading, data }) => !loading && (
     <Table>
       <thead>
@@ -25,7 +29,11 @@ export default () => (
       </thead>
       <tbody>
         {data.posts.map(post => (
-          <tr key={post.id}>
+          <tr 
+            key={post.id}
+            style={rowStyles(post, canEdit)}
+            onClick={() => canEdit(post) && onEdit(post)}
+          >
             <td>{post.author}</td>
             <td>{post.body}</td>
           </tr>
@@ -35,3 +43,10 @@ export default () => (
   )}
   </Query>
 )
+
+PostViewer.defaultProps = {
+  canEdit: () => false,
+  onEdit: () => null,
+};
+
+export default PostViewer
